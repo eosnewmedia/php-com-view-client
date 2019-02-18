@@ -1,0 +1,19 @@
+{
+  "name": "eos/com-view-client",
+  "authors": [
+    {
+      "name": "Paul Gütschow",
+      "email": "guetschow@eosnewmedia.de"
+    }
+  ],
+  "require": {
+    "php": ">=7.2",
+    "ramsey/uuid": "^3.8",
+    "guzzlehttp/psr7": "^1.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Eos\\ComView\\Client\\": "src"
+    }
+  }
+}

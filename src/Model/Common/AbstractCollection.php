@@ -6,6 +6,7 @@ namespace Eos\ComView\Client\Model\Common;
 
 /**
  * @author Paul Martin Gütschow <guetschow@esonewmedia.de>
+ * @todo why is the name "AbstractCollection" even if the class isn't abstract?
  */
 class AbstractCollection implements CollectionInterface
 {

@@ -57,6 +57,7 @@ class ViewRequest
 
     /**
      * @return KeyValueCollectionInterface
+     * @todo because value objects are immutable, an array should be returned instead of a mutable collection
      */
     public function getParameters(): KeyValueCollectionInterface
     {
@@ -65,6 +66,7 @@ class ViewRequest
 
     /**
      * @return KeyValueCollectionInterface
+     * @todo because value objects are immutable, an array should be returned instead of a mutable collection
      */
     public function getPagiantion(): KeyValueCollectionInterface
     {

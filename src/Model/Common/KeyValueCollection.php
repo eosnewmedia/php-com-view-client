@@ -6,6 +6,7 @@ namespace Eos\ComView\Client\Model\Common;
 
 /**
  * @author Paul Martin Gütschow <guetschow@esonewmedia.de>
+ * @todo none of the defined methods are needed for the logic of this library, so we should remove this class and use simple arrays instead
  */
 class KeyValueCollection extends AbstractCollection implements KeyValueCollectionInterface
 {
@@ -45,7 +46,7 @@ class KeyValueCollection extends AbstractCollection implements KeyValueCollectio
     public function getRequired(string $key)
     {
         if (!$this->has($key)) {
-            throw new \InvalidArgumentException('Element '.$key.' does not exist');
+            throw new \InvalidArgumentException('Element ' . $key . ' does not exist');
         }
 
         return $this->collection[$this->keyMap[strtolower($key)]];
@@ -74,7 +75,7 @@ class KeyValueCollection extends AbstractCollection implements KeyValueCollectio
     {
         $data = $required ? $this->getRequired($key) : $this->getOptional($key, []);
         if (!\is_array($data)) {
-            throw new \InvalidArgumentException('Element '.$key.' have to be an array to use it as collection.');
+            throw new \InvalidArgumentException('Element ' . $key . ' have to be an array to use it as collection.');
         }
 
         return new self($data);

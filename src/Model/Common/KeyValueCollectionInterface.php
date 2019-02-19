@@ -6,8 +6,8 @@ namespace Eos\ComView\Client\Model\Common;
 
 /**
  * @author Paul Martin Gütschow <guetschow@esonewmedia.de>
+ * @todo none of the defined methods are needed for the logic of this library, so we should remove this interface and use simple arrays instead
  */
-
 interface KeyValueCollectionInterface extends CollectionInterface
 {
     /**

@@ -6,6 +6,7 @@ namespace Eos\ComView\Client\Helper;
 
 /**
  * @author Paul Martin Gütschow <guetschow@esonewmedia.de>
+ * @todo rename namespace from "Helper" to more specif one like "UuidGenerator"
  */
 interface UuidGeneratorInterface
 {

@@ -23,9 +23,12 @@ use Psr\Http\Message\UriInterface;
  */
 class ComViewClient
 {
+    //@todo in composer.json: library should not depend on ramsey/uuid or guzzlehttp/psr7, move ramsey to require-dev and suggest and replace guzzle with psr/http-client and psr/http-factory
+    //@todo please write a readme file how to use this library
 
     /**
      * @var ClientInterface
+     * @todo instead of an own client interface which only makes use of PSR-7 request/response, we should use a PSR-18 http client in our library
      */
     private $httpClient;
 
@@ -72,8 +75,9 @@ class ComViewClient
                 $query['orderBy'] = $viewRequest->getOrderBy();
             }
 
-            $requestUri = new Uri();
+            $requestUri = new Uri(); //@todo don't let our library depend on concrete external classes, instead create the uri via an instance of UriFactoryInterface from psr-17
             $requestUri->withHost($this->baseUrl);
+            // @todo because a base uri can look like "example.com/api" you can not overwrite the path. extend the path like "basePath+cvPath"
             $requestUri->withPath('/cv/'.$viewRequest->getName());
             $requestUri->withQuery(http_build_query($query));
 
@@ -81,6 +85,7 @@ class ComViewClient
             $response = $this->httpClient->sendRequest($request);
 
             if ($response->getStatusCode() === 404) {
+                //@todo don't throw an extension here, but give the status (as code and as constant like FAILURE) back to the application
                 throw new NotFoundException('View not found');
             }
 
@@ -109,13 +114,14 @@ class ComViewClient
     {
         try {
             $body = [
+                //@todo the id should be given in command request, because otherwise reassigning responses to requests is impossible in the application; possibility: create a "CommandRequestFactory"-Method here where id's are assigned
                 $this->uuidGenerator->generate() => [
                     'command' => $commandRequest->getCommand(),
                     'parameters' => $commandRequest->getParameters()->all(),
                 ],
             ];
 
-            return $this->handleCommandRequest($body)[0];
+            return $this->handleCommandRequest($body)[0]; // @todo this can fail if for some reason no response is given
 
         } catch (\Throwable $exception) {
             throw new RequestException('An Error occurred while performing this request');
@@ -133,6 +139,7 @@ class ComViewClient
         try {
             $body = [];
             foreach ($commandRequests as $commandRequest) {
+                //@todo the id should be given in command request, because otherwise reassigning responses to requests is impossible in the application; possibility: create a "CommandRequestFactory"-Method here where id's are assigned
                 $body[$this->uuidGenerator->generate()] = [
                     'command' => $commandRequest->getCommand(),
                     'parameters' => $commandRequest->getParameters()->all(),
@@ -155,6 +162,7 @@ class ComViewClient
      */
     private function generateRequest(?array $content, string $method, UriInterface $requestUri): RequestInterface
     {
+        //@todo don't let our library depend on concrete external classes, instead create the request via an instance of RequestFactoryInterface from psr-17
         return new Request(
             $method,
             $requestUri,
@@ -181,6 +189,8 @@ class ComViewClient
         $commandResponse = [];
 
         foreach ((array)$responseData as $id => $response) {
+            // @todo check for array key exist before usage
+            //@todo if you don't use the id in the command response, for multiple commands it will be impossible to assign response to request
             $commandResponse[] = new CommandResponse(
                 $responseData['status'],
                 new AbstractCollection(\array_key_exists('result', $responseData) ? $responseData['result'] : [])

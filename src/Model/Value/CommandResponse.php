@@ -40,6 +40,7 @@ class CommandResponse
 
     /**
      * @return CollectionInterface
+     * @todo because value objects are immutable, an array should be returned instead of a mutable collection
      */
     public function getResult(): CollectionInterface
     {

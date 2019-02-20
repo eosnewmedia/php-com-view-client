@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Eos\ComView\Client\Model\Value;
 
-use Eos\ComView\Client\Model\Common\CollectionInterface;
-
 /**
  * @author Paul Martin Gütschow <guetschow@esonewmedia.de>
  */
@@ -16,15 +14,15 @@ class CommandRequest
     private $command;
 
     /**
-     * @var CollectionInterface
+     * @var array
      */
     private $parameters;
 
     /**
      * @param string $command
-     * @param CollectionInterface $parameters
+     * @param array $parameters
      */
-    public function __construct(string $command, CollectionInterface $parameters)
+    public function __construct(string $command, array $parameters)
     {
         $this->command = $command;
         $this->parameters = $parameters;
@@ -39,10 +37,9 @@ class CommandRequest
     }
 
     /**
-     * @return CollectionInterface
-     * @todo because value objects are immutable, an array should be returned instead of a mutable collection
+     * @return array
      */
-    public function getParameters(): CollectionInterface
+    public function getParameters(): array
     {
         return $this->parameters;
     }

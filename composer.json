@@ -8,8 +8,11 @@
   ],
   "require": {
     "php": ">=7.2",
-    "ramsey/uuid": "^3.8",
-    "guzzlehttp/psr7": "^1.5"
+    "psr/http-client": "^1.0",
+    "psr/http-factory": "^1.0"
+  },
+  "require-dev": {
+    "ramsey/uuid": "^3.8"
   },
   "autoload": {
     "psr-4": {

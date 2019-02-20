@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Eos\ComView\Client\Model\Value;
 
-use Eos\ComView\Client\Model\Common\KeyValueCollectionInterface;
 
 /**
  * @author Paul Martin Gütschow <guetschow@esonewmedia.de>
@@ -17,13 +16,12 @@ class ViewRequest
     private $name;
 
     /**
-     * @var KeyValueCollectionInterface
+     * @var array
      */
     private $parameters;
 
-
     /**
-     * @var KeyValueCollectionInterface
+     * @var array
      */
     private $pagiantion;
 
@@ -34,11 +32,11 @@ class ViewRequest
 
     /**
      * @param string $name
-     * @param KeyValueCollectionInterface $parameters
-     * @param KeyValueCollectionInterface $pagiantion
+     * @param array $parameters
+     * @param array $pagiantion
      * @param null|string $orderBy
      */
-    public function __construct(string $name, KeyValueCollectionInterface $parameters, KeyValueCollectionInterface $pagiantion, ?string $orderBy)
+    public function __construct(string $name, array $parameters, array $pagiantion, ?string $orderBy)
     {
         $this->name = $name;
         $this->parameters = $parameters;
@@ -56,19 +54,17 @@ class ViewRequest
 
 
     /**
-     * @return KeyValueCollectionInterface
-     * @todo because value objects are immutable, an array should be returned instead of a mutable collection
+     * @return array
      */
-    public function getParameters(): KeyValueCollectionInterface
+    public function getParameters(): array
     {
         return $this->parameters;
     }
 
     /**
-     * @return KeyValueCollectionInterface
-     * @todo because value objects are immutable, an array should be returned instead of a mutable collection
+     * @return array
      */
-    public function getPagiantion(): KeyValueCollectionInterface
+    public function getPagiantion(): array
     {
         return $this->pagiantion;
     }

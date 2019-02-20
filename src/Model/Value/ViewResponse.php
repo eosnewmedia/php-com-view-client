@@ -3,21 +3,22 @@ declare(strict_types=1);
 
 namespace Eos\ComView\Client\Model\Value;
 
-use Eos\ComView\Client\Model\Common\CollectionInterface;
-use Eos\ComView\Client\Model\Common\KeyValueCollectionInterface;
 
 /**
  * @author Paul Martin Gütschow <guetschow@esonewmedia.de>
  */
 class ViewResponse
 {
+    public const SUCCESS = 'Success';
+    public const ERROR = 'Error';
+
     /**
-     * @var KeyValueCollectionInterface
+     * @var array
      */
     private $parameters;
 
     /**
-     * @var KeyValueCollectionInterface
+     * @var array
      */
     private $pagiantion;
 
@@ -32,37 +33,39 @@ class ViewResponse
     private $data;
 
     /**
-     * @param KeyValueCollectionInterface $parameters
-     * @param KeyValueCollectionInterface $pagiantion
-     * @param null|string $orderBy
-     * @param CollectionInterface $data
+     * @var int
      */
-    public function __construct(
-        KeyValueCollectionInterface $parameters,
-        KeyValueCollectionInterface $pagiantion,
-        ?string $orderBy,
-        CollectionInterface $data
-    ) {
+    private $statusCode;
+
+    /**
+     * @param array $parameters
+     * @param array $pagiantion
+     * @param null|string $orderBy
+     * @param array $data
+     * @param int $statusCode
+     */
+    public function __construct(array $parameters, array $pagiantion, ?string $orderBy, array $data, int $statusCode)
+    {
         $this->parameters = $parameters;
         $this->pagiantion = $pagiantion;
         $this->orderBy = $orderBy;
         $this->data = $data;
+        $this->statusCode = $statusCode;
     }
 
+
     /**
-     * @return KeyValueCollectionInterface
-     * @todo because value objects are immutable, an array should be returned instead of a mutable collection
+     * @return array
      */
-    public function getParameters(): KeyValueCollectionInterface
+    public function getParameters(): array
     {
         return $this->parameters;
     }
 
     /**
-     * @return KeyValueCollectionInterface
-     * @todo because value objects are immutable, an array should be returned instead of a mutable collection
+     * @return array
      */
-    public function getPagiantion(): KeyValueCollectionInterface
+    public function getPagiantion(): array
     {
         return $this->pagiantion;
     }
@@ -76,12 +79,32 @@ class ViewResponse
     }
 
     /**
-     * @return CollectionInterface
+     * @return array
      */
-    public function getData(): CollectionInterface
+    public function getData(): array
     {
         return $this->data;
     }
 
+    /**
+     * @return int
+     */
+    public function getStatusCode(): int
+    {
+        return $this->statusCode;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStatus(): string
+    {
+        if ($this->getStatusCode() === 200) {
+            return self::SUCCESS;
+        }
+
+        return self::ERROR;
+
+    }
 
 }

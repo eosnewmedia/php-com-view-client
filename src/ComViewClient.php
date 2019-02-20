@@ -3,19 +3,16 @@ declare(strict_types=1);
 
 namespace Eos\ComView\Client;
 
-use Eos\ComView\Client\Exception\NotFoundException;
 use Eos\ComView\Client\Exception\RequestException;
-use Eos\ComView\Client\Helper\UuidGeneratorInterface;
-use Eos\ComView\Client\HttpClient\ClientInterface;
-use Eos\ComView\Client\Model\Common\AbstractCollection;
-use Eos\ComView\Client\Model\Common\KeyValueCollection;
 use Eos\ComView\Client\Model\Value\CommandRequest;
 use Eos\ComView\Client\Model\Value\CommandResponse;
 use Eos\ComView\Client\Model\Value\ViewRequest;
 use Eos\ComView\Client\Model\Value\ViewResponse;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Uri;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 
 /**
@@ -23,19 +20,10 @@ use Psr\Http\Message\UriInterface;
  */
 class ComViewClient
 {
-    //@todo in composer.json: library should not depend on ramsey/uuid or guzzlehttp/psr7, move ramsey to require-dev and suggest and replace guzzle with psr/http-client and psr/http-factory
-    //@todo please write a readme file how to use this library
-
     /**
      * @var ClientInterface
-     * @todo instead of an own client interface which only makes use of PSR-7 request/response, we should use a PSR-18 http client in our library
      */
     private $httpClient;
-
-    /**
-     * @var UuidGeneratorInterface
-     */
-    private $uuidGenerator;
 
     /**
      * @var string
@@ -43,15 +31,39 @@ class ComViewClient
     private $baseUrl;
 
     /**
-     * @param ClientInterface $httpClient
-     * @param UuidGeneratorInterface $uuidGenerator
-     * @param string $baseUrl
+     * @var UriFactoryInterface
      */
-    public function __construct(ClientInterface $httpClient, UuidGeneratorInterface $uuidGenerator, string $baseUrl)
-    {
+    private $uriFactory;
+
+    /**
+     * @var RequestFactoryInterface
+     */
+    private $requestFactory;
+
+    /**
+     * @var StreamFactoryInterface
+     */
+    private $streamFactory;
+
+    /**
+     * @param ClientInterface $httpClient
+     * @param string $baseUrl
+     * @param UriFactoryInterface $uriFactory
+     * @param RequestFactoryInterface $requestFactory
+     * @param StreamFactoryInterface $streamFactory
+     */
+    public function __construct(
+        ClientInterface $httpClient,
+        string $baseUrl,
+        UriFactoryInterface $uriFactory,
+        RequestFactoryInterface $requestFactory,
+        StreamFactoryInterface $streamFactory
+    ) {
         $this->httpClient = $httpClient;
-        $this->uuidGenerator = $uuidGenerator;
         $this->baseUrl = $baseUrl;
+        $this->uriFactory = $uriFactory;
+        $this->requestFactory = $requestFactory;
+        $this->streamFactory = $streamFactory;
     }
 
 
@@ -65,68 +77,63 @@ class ComViewClient
         try {
 
             $query = [];
-            if (!$viewRequest->getParameters()->isEmpty()) {
+            if (\count($viewRequest->getParameters()) > 0) {
                 $query['parameters'] = $viewRequest->getParameters();
             }
-            if (!$viewRequest->getPagiantion()->isEmpty()) {
+            if (\count($viewRequest->getPagiantion()) > 0) {
                 $query['pagination'] = $viewRequest->getPagiantion();
             }
-            if ($viewRequest->getParameters() !== null) {
+            if ($viewRequest->getOrderBy() !== null) {
                 $query['orderBy'] = $viewRequest->getOrderBy();
             }
 
-            $requestUri = new Uri(); //@todo don't let our library depend on concrete external classes, instead create the uri via an instance of UriFactoryInterface from psr-17
-            $requestUri->withHost($this->baseUrl);
-            // @todo because a base uri can look like "example.com/api" you can not overwrite the path. extend the path like "basePath+cvPath"
-            $requestUri->withPath('/cv/'.$viewRequest->getName());
+            $requestUri = $this->uriFactory->createUri($this->baseUrl.'/cv/'.$viewRequest->getName());
             $requestUri->withQuery(http_build_query($query));
 
             $request = $this->generateRequest(null, 'GET', $requestUri);
             $response = $this->httpClient->sendRequest($request);
-
-            if ($response->getStatusCode() === 404) {
-                //@todo don't throw an extension here, but give the status (as code and as constant like FAILURE) back to the application
-                throw new NotFoundException('View not found');
-            }
-
             $responseData = json_decode($response->getBody()->getContents(), true);
 
             $viewResponse = new ViewResponse(
-                new KeyValueCollection(\array_key_exists('parameters', $responseData) ? $responseData['parameters'] : []),
-                new KeyValueCollection(\array_key_exists('pagination', $responseData) ? $responseData['pagination'] : []),
+                \array_key_exists('parameters', $responseData) ? $responseData['parameters'] : [],
+                \array_key_exists('pagination', $responseData) ? $responseData['pagination'] : [],
                 $parameters['orderBy'] ?? null,
-                new KeyValueCollection(\array_key_exists('data', $responseData) ? $responseData['data'] : [])
+                \array_key_exists('data', $responseData) ? $responseData['data'] : [],
+                $response->getStatusCode()
             );
 
             return $viewResponse;
 
         } catch (\Throwable $exception) {
-            throw new RequestException('An Error occurred while performing this request');
+            throw new RequestException('An Error occurred while performing this request', 500, $exception);
         }
     }
 
     /**
+     * @param string $id
      * @param CommandRequest $commandRequest
-     * @return CommandRequest
+     * @return CommandRequest|null
      * @throws RequestException
      */
-    public function execute(CommandRequest $commandRequest): CommandRequest
+    public function execute(string $id, CommandRequest $commandRequest): ?CommandRequest
     {
         try {
-            $body = [
-                //@todo the id should be given in command request, because otherwise reassigning responses to requests is impossible in the application; possibility: create a "CommandRequestFactory"-Method here where id's are assigned
-                $this->uuidGenerator->generate() => [
-                    'command' => $commandRequest->getCommand(),
-                    'parameters' => $commandRequest->getParameters()->all(),
-                ],
+            $body[$id] = [
+                'command' => $commandRequest->getCommand(),
+                'parameters' => $commandRequest->getParameters()
             ];
 
-            return $this->handleCommandRequest($body)[0]; // @todo this can fail if for some reason no response is given
+            $response = $this->handleCommandRequest($body);
+
+            if (array_key_exists($id, $response)) {
+                return $response[$id];
+            }
 
         } catch (\Throwable $exception) {
-            throw new RequestException('An Error occurred while performing this request');
+            throw new RequestException('An Error occurred while performing this request', 500, $exception);
         }
 
+        return null;
     }
 
     /**
@@ -138,18 +145,17 @@ class ComViewClient
     {
         try {
             $body = [];
-            foreach ($commandRequests as $commandRequest) {
-                //@todo the id should be given in command request, because otherwise reassigning responses to requests is impossible in the application; possibility: create a "CommandRequestFactory"-Method here where id's are assigned
-                $body[$this->uuidGenerator->generate()] = [
+            foreach ($commandRequests as $id => $commandRequest) {
+                $body[$id] = [
                     'command' => $commandRequest->getCommand(),
-                    'parameters' => $commandRequest->getParameters()->all(),
+                    'parameters' => $commandRequest->getParameters()
                 ];
             }
 
             return $this->handleCommandRequest($body);
 
         } catch (\Throwable $exception) {
-            throw new RequestException('An Error occurred while performing this request');
+            throw new RequestException('An Error occurred while performing this request', 500, $exception);
         }
 
     }
@@ -159,29 +165,29 @@ class ComViewClient
      * @param string $method
      * @param UriInterface $requestUri
      * @return RequestInterface
+     * @throws \Exception
      */
     private function generateRequest(?array $content, string $method, UriInterface $requestUri): RequestInterface
     {
-        //@todo don't let our library depend on concrete external classes, instead create the request via an instance of RequestFactoryInterface from psr-17
-        return new Request(
-            $method,
-            $requestUri,
-            ['Content-Type' => 'application/json'],
-            json_encode($content) ?? null
-        );
+        $request = $this->requestFactory->createRequest($method, $requestUri);
+        $request->withHeader('Content-Type', 'application/json');
+        if ($content !== null) {
+            $request->withBody(
+                $this->streamFactory->createStream(json_encode($content))
+            );
+        }
+
+        return $request;
     }
 
     /**
      * @param array $body
      * @return CommandResponse[]
-     * @throws \Exception
+     * @throws \Throwable
      */
     private function handleCommandRequest(array $body): array
     {
-        $requestUri = new Uri();
-        $requestUri->withHost($this->baseUrl);
-        $requestUri->withPath('/cv/execute');
-
+        $requestUri = $this->uriFactory->createUri($this->baseUrl.'/cv/execute');
         $request = $this->generateRequest($body, 'POST', $requestUri);
 
         $response = $this->httpClient->sendRequest($request);
@@ -189,11 +195,9 @@ class ComViewClient
         $commandResponse = [];
 
         foreach ((array)$responseData as $id => $response) {
-            // @todo check for array key exist before usage
-            //@todo if you don't use the id in the command response, for multiple commands it will be impossible to assign response to request
-            $commandResponse[] = new CommandResponse(
+            $commandResponse[$id] = new CommandResponse(
                 $responseData['status'],
-                new AbstractCollection(\array_key_exists('result', $responseData) ? $responseData['result'] : [])
+                \array_key_exists('result', $responseData) ? $responseData['result'] : []
             );
         }
 

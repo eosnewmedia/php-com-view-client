@@ -1,5 +1,5 @@
 # eos/php-com-view-client
-PHP client implementation for ComView-API. Designed as client used with [eos/php-com-view-client](https://github.com/eosnewmedia/php-com-view-server).
+PHP client implementation for ComView-API. Designed as client used with [eos/php-com-view-server](https://github.com/eosnewmedia/php-com-view-server).
 
 # Installation
 
@@ -19,7 +19,7 @@ Install this library via composer:
  Create a new instance of `Eos\ComView\Client\ComViewClient`. This will be the entrypoint for the application.
  
  ```php
-$client = new ComViewClient(
+$client = new Eos\ComView\Client\ComViewClient(
                 $psrHttpClient,
                 $baseUrl, 
                 $psrUriFactory, 

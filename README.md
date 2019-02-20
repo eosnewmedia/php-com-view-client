@@ -9,19 +9,19 @@ Install this library via composer:
     
  # Configuration
  
- This assumes you have implemented the [PSR 17](https://www.php-fig.org/psr/psr-17) and [PSR 18](https://www.php-fig.org/psr/psr-18) Interfaces that are passed as dependencies:
+ This assumes you have implemented the [PSR 17](https://www.php-fig.org/psr/psr-17) and [PSR 18](https://www.php-fig.org/psr/psr-18) interfaces that are passed as dependencies:
  
     Psr\Http\Client\ClientInterface;
     Psr\Http\Message\RequestFactoryInterface;
     Psr\Http\Message\StreamFactoryInterface;
     Psr\Http\Message\UriFactoryInterface;
  
- Create a new instance of `Eos\ComView\Client\ComViewClient`. This will be the entrypoint for the application.
+ Create a new instance of `Eos\ComView\Client\ComViewClient`. This will be the entry point for the application.
  
  ```php
 $client = new Eos\ComView\Client\ComViewClient(
-                $psrHttpClient,
                 $baseUrl, 
+                $psrHttpClient,
                 $psrUriFactory, 
                 $psrRequestFactory, 
                 $psrStreamFactory
@@ -32,9 +32,9 @@ $client = new Eos\ComView\Client\ComViewClient(
 
 This library provides 3 methods to send view- and command-requests.
 
-### Eos\ComView\Client\ComViewClient::view($viewRequest)
+### Eos\ComView\Client\ComViewClient::requestView($viewRequest)
 
- `Eos\ComView\Client\ComViewClient::view($viewRequest)` expects an instance of `Eos\ComView\Client\Value\ViewRequest` and returns an object of `Eos\ComView\Client\Value\ViewResponse`. 
+ `Eos\ComView\Client\ComViewClient::requestView($viewRequest)` expects an instance of `Eos\ComView\Client\Value\ViewRequest` and returns an object of `Eos\ComView\Client\Value\ViewResponse`. 
  
  ```php
 $viewRequest = new Eos\ComView\Client\Value\ViewRequest(
@@ -43,12 +43,12 @@ $viewRequest = new Eos\ComView\Client\Value\ViewRequest(
     $pagination,    //array
     $orderBy        //string|null
 );
-$response = $client->view($viewRequest);
+$response = $client->requestView($viewRequest);
 ```
 
-### Eos\ComView\Client\ComViewClient::execute($id, $commandRequest)
+### Eos\ComView\Client\ComViewClient::executeCommand($commandRequest)
 
- `Eos\ComView\Client\ComViewClient::execute($id, $commandRequest)` expects a string ID and an instance of `Eos\ComView\Client\Value\CommandRequest` and returns an object of `Eos\ComView\Client\Value\CommandResponse` or `null`.
+ `Eos\ComView\Client\ComViewClient::executeCommand($commandRequest)` expects an instance of `Eos\ComView\Client\Value\CommandRequest` and returns an instance of `Eos\ComView\Client\Value\CommandResponse`.
  
   
   ```php
@@ -56,24 +56,21 @@ $response = $client->view($viewRequest);
      $commandName,  //string
      $parameters    //array
  );
- $id = '123';
- $response = $client->execute($id, $commandRequest);
+ $response = $client->executeCommand($commandRequest);
  ```
  
- ### Eos\ComView\Client\ComViewClient::executeMultiple($commandRequests)
+ ### Eos\ComView\Client\ComViewClient::executeCommands($commandRequests)
  
- `Eos\ComView\Client\ComViewClient::executeMultiple($commandRequests)` expects an array of instances of `Eos\ComView\Client\Value\CommandRequest`  with a unique ID an key and returns an array of object of `Eos\ComView\Client\Value\CommandResponse`.
+ `Eos\ComView\Client\ComViewClient::executeCommands($commandRequests)` expects an array of instances of `Eos\ComView\Client\Value\CommandRequest`  with a unique ID (for this request) as key and returns an array of instances of `Eos\ComView\Client\Value\CommandResponse` with the unique ids as keys.
  
  
 
   ```php
   $commandRequests = [
-        '123'=> new Eos\ComView\Client\Value\CommandRequest(/*...*/),
-        '234'=> new Eos\ComView\Client\Value\CommandRequest(/*...*/),
-        '345'=> new Eos\ComView\Client\Value\CommandRequest(/*...*/)
+        '1'=> new Eos\ComView\Client\Value\CommandRequest(/*...*/),
+        '2'=> new Eos\ComView\Client\Value\CommandRequest(/*...*/),
+        '3'=> new Eos\ComView\Client\Value\CommandRequest(/*...*/)
   ];
- $response = $client->executeMultiple($commandRequests);
+ $response = $client->executeCommands($commandRequests);
  ```
  
- 
-

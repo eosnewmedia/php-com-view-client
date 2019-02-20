@@ -9,8 +9,8 @@ namespace Eos\ComView\Client\Model\Value;
  */
 class ViewResponse
 {
-    public const SUCCESS = 'Success';
-    public const ERROR = 'Error';
+    public const SUCCESS = 'success';
+    public const ERROR = 'error';
 
     /**
      * @var array
@@ -20,7 +20,7 @@ class ViewResponse
     /**
      * @var array
      */
-    private $pagiantion;
+    private $pagination;
 
     /**
      * @var string|null
@@ -39,20 +39,19 @@ class ViewResponse
 
     /**
      * @param array $parameters
-     * @param array $pagiantion
+     * @param array $pagination
      * @param null|string $orderBy
      * @param array $data
      * @param int $statusCode
      */
-    public function __construct(array $parameters, array $pagiantion, ?string $orderBy, array $data, int $statusCode)
+    public function __construct(array $parameters, array $pagination, ?string $orderBy, array $data, int $statusCode)
     {
         $this->parameters = $parameters;
-        $this->pagiantion = $pagiantion;
+        $this->pagination = $pagination;
         $this->orderBy = $orderBy;
         $this->data = $data;
         $this->statusCode = $statusCode;
     }
-
 
     /**
      * @return array
@@ -65,9 +64,9 @@ class ViewResponse
     /**
      * @return array
      */
-    public function getPagiantion(): array
+    public function getPagination(): array
     {
-        return $this->pagiantion;
+        return $this->pagination;
     }
 
     /**
@@ -104,7 +103,5 @@ class ViewResponse
         }
 
         return self::ERROR;
-
     }
-
 }

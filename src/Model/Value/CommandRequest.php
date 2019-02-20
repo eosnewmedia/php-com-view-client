@@ -22,7 +22,7 @@ class CommandRequest
      * @param string $command
      * @param array $parameters
      */
-    public function __construct(string $command, array $parameters)
+    public function __construct(string $command, array $parameters = [])
     {
         $this->command = $command;
         $this->parameters = $parameters;
@@ -43,6 +43,4 @@ class CommandRequest
     {
         return $this->parameters;
     }
-
-
 }

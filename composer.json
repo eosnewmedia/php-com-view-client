@@ -1,5 +1,6 @@
 {
   "name": "eos/php-com-view-client",
+  "license": "MIT",
   "authors": [
     {
       "name": "Paul Gütschow",
@@ -8,11 +9,9 @@
   ],
   "require": {
     "php": ">=7.2",
+    "ext-json": "*",
     "psr/http-client": "^1.0",
     "psr/http-factory": "^1.0"
-  },
-  "require-dev": {
-    "ramsey/uuid": "^3.8"
   },
   "autoload": {
     "psr-4": {

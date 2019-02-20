@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Eos\ComView\Client;
 
-use Eos\ComView\Client\Exception\RequestException;
+use Eos\ComView\Client\Exception\ComViewException;
 use Eos\ComView\Client\Model\Value\CommandRequest;
 use Eos\ComView\Client\Model\Value\CommandResponse;
 use Eos\ComView\Client\Model\Value\ViewRequest;
@@ -21,14 +21,14 @@ use Psr\Http\Message\UriInterface;
 class ComViewClient
 {
     /**
-     * @var ClientInterface
-     */
-    private $httpClient;
-
-    /**
      * @var string
      */
     private $baseUrl;
+
+    /**
+     * @var ClientInterface
+     */
+    private $httpClient;
 
     /**
      * @var UriFactoryInterface
@@ -53,8 +53,8 @@ class ComViewClient
      * @param StreamFactoryInterface $streamFactory
      */
     public function __construct(
-        ClientInterface $httpClient,
         string $baseUrl,
+        ClientInterface $httpClient,
         UriFactoryInterface $uriFactory,
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface $streamFactory
@@ -66,31 +66,29 @@ class ComViewClient
         $this->streamFactory = $streamFactory;
     }
 
-
     /**
      * @param ViewRequest $viewRequest
      * @return ViewResponse
-     * @throws RequestException
+     * @throws ComViewException
      */
-    public function view(ViewRequest $viewRequest): ViewResponse
+    public function requestView(ViewRequest $viewRequest): ViewResponse
     {
         try {
-
             $query = [];
             if (\count($viewRequest->getParameters()) > 0) {
                 $query['parameters'] = $viewRequest->getParameters();
             }
-            if (\count($viewRequest->getPagiantion()) > 0) {
-                $query['pagination'] = $viewRequest->getPagiantion();
+            if (\count($viewRequest->getPagination()) > 0) {
+                $query['pagination'] = $viewRequest->getPagination();
             }
-            if ($viewRequest->getOrderBy() !== null) {
+            if ($viewRequest->getOrderBy()) {
                 $query['orderBy'] = $viewRequest->getOrderBy();
             }
 
-            $requestUri = $this->uriFactory->createUri($this->baseUrl.'/cv/'.$viewRequest->getName());
+            $requestUri = $this->uriFactory->createUri(rtrim($this->baseUrl, '/') . '/cv/' . $viewRequest->getName());
             $requestUri->withQuery(http_build_query($query));
 
-            $request = $this->generateRequest(null, 'GET', $requestUri);
+            $request = $this->generateRequest('GET', $requestUri);
             $response = $this->httpClient->sendRequest($request);
             $responseData = json_decode($response->getBody()->getContents(), true);
 
@@ -103,71 +101,70 @@ class ComViewClient
             );
 
             return $viewResponse;
-
         } catch (\Throwable $exception) {
-            throw new RequestException('An Error occurred while performing this request', 500, $exception);
+            throw new ComViewException('An Error occurred while performing this request', 0, $exception);
         }
     }
 
     /**
-     * @param string $id
      * @param CommandRequest $commandRequest
-     * @return CommandRequest|null
-     * @throws RequestException
+     * @return CommandResponse
+     * @throws ComViewException
      */
-    public function execute(string $id, CommandRequest $commandRequest): ?CommandRequest
+    public function executeCommand(CommandRequest $commandRequest): CommandResponse
     {
-        try {
-            $body[$id] = [
-                'command' => $commandRequest->getCommand(),
-                'parameters' => $commandRequest->getParameters()
-            ];
+        $id = md5(uniqid('command', true));
 
-            $response = $this->handleCommandRequest($body);
+        try {
+            $response = $this->handleCommandRequest(
+                [
+                    $id => [
+                        'command' => $commandRequest->getCommand(),
+                        'parameters' => $commandRequest->getParameters()
+                    ]
+                ]
+            );
 
             if (array_key_exists($id, $response)) {
                 return $response[$id];
             }
 
+            throw new \RuntimeException('Invalid response.');
         } catch (\Throwable $exception) {
-            throw new RequestException('An Error occurred while performing this request', 500, $exception);
+            throw new ComViewException('An Error occurred while performing this request', 0, $exception);
         }
-
-        return null;
     }
 
     /**
      * @param CommandRequest[] $commandRequests
      * @return CommandResponse[]
-     * @throws RequestException
+     * @throws ComViewException
      */
-    public function executeMultiple(array $commandRequests): array
+    public function executeCommands(array $commandRequests): array
     {
         try {
             $body = [];
             foreach ($commandRequests as $id => $commandRequest) {
-                $body[$id] = [
+                $body[(string)$id] = [
                     'command' => $commandRequest->getCommand(),
                     'parameters' => $commandRequest->getParameters()
                 ];
             }
 
             return $this->handleCommandRequest($body);
-
         } catch (\Throwable $exception) {
-            throw new RequestException('An Error occurred while performing this request', 500, $exception);
+            throw new ComViewException('An Error occurred while performing this request', 0, $exception);
         }
-
     }
 
     /**
-     * @param array|null $content
      * @param string $method
      * @param UriInterface $requestUri
+     * @param array|null $content
      * @return RequestInterface
      * @throws \Exception
      */
-    private function generateRequest(?array $content, string $method, UriInterface $requestUri): RequestInterface
+    private function generateRequest(string $method, UriInterface $requestUri, ?array $content = null): RequestInterface
     {
         $request = $this->requestFactory->createRequest($method, $requestUri);
         $request->withHeader('Content-Type', 'application/json');
@@ -187,15 +184,15 @@ class ComViewClient
      */
     private function handleCommandRequest(array $body): array
     {
-        $requestUri = $this->uriFactory->createUri($this->baseUrl.'/cv/execute');
-        $request = $this->generateRequest($body, 'POST', $requestUri);
+        $requestUri = $this->uriFactory->createUri($this->baseUrl . '/cv/execute');
+        $request = $this->generateRequest('POST', $requestUri, $body);
 
         $response = $this->httpClient->sendRequest($request);
         $responseData = json_decode($response->getBody()->getContents(), true);
         $commandResponse = [];
 
         foreach ((array)$responseData as $id => $response) {
-            $commandResponse[$id] = new CommandResponse(
+            $commandResponse[(string)$id] = new CommandResponse(
                 $responseData['status'],
                 \array_key_exists('result', $responseData) ? $responseData['result'] : []
             );

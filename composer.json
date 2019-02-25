@@ -1,0 +1,21 @@
+{
+  "name": "eos/php-com-view-client",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Paul Gütschow",
+      "email": "guetschow@eosnewmedia.de"
+    }
+  ],
+  "require": {
+    "php": ">=7.2",
+    "ext-json": "*",
+    "psr/http-client": "^1.0",
+    "psr/http-factory": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Eos\\ComView\\Client\\": "src"
+    }
+  }
+}

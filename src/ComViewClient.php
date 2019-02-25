@@ -184,7 +184,7 @@ class ComViewClient
      */
     private function handleCommandRequest(array $body): array
     {
-        $requestUri = $this->uriFactory->createUri($this->baseUrl . '/cv/execute');
+        $requestUri = $this->uriFactory->createUri(rtrim($this->baseUrl, '/') . '/cv/execute');
         $request = $this->generateRequest('POST', $requestUri, $body);
 
         $response = $this->httpClient->sendRequest($request);

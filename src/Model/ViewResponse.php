@@ -1,16 +1,22 @@
 <?php
 declare(strict_types=1);
 
-namespace Eos\ComView\Client\Model\Value;
+namespace Eos\ComView\Client\Model;
 
 
 /**
  * @author Paul Martin Gütschow <guetschow@esonewmedia.de>
+ * @author Philipp Marien <marien@eosnewmedia.de>
  */
 class ViewResponse
 {
     public const SUCCESS = 'success';
     public const ERROR = 'error';
+
+    /**
+     * @var array
+     */
+    private $headers;
 
     /**
      * @var array
@@ -38,19 +44,35 @@ class ViewResponse
     private $statusCode;
 
     /**
+     * @param array $headers
      * @param array $parameters
      * @param array $pagination
      * @param null|string $orderBy
      * @param array $data
      * @param int $statusCode
      */
-    public function __construct(array $parameters, array $pagination, ?string $orderBy, array $data, int $statusCode)
-    {
+    public function __construct(
+        array $headers,
+        array $parameters,
+        array $pagination,
+        ?string $orderBy,
+        array $data,
+        int $statusCode
+    ) {
+        $this->headers = $headers;
         $this->parameters = $parameters;
         $this->pagination = $pagination;
         $this->orderBy = $orderBy;
         $this->data = $data;
         $this->statusCode = $statusCode;
+    }
+
+    /**
+     * @return array
+     */
+    public function getHeaders(): array
+    {
+        return $this->headers;
     }
 
     /**

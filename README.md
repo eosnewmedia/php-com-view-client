@@ -20,57 +20,47 @@ Install this library via composer:
  
  ```php
 $client = new Eos\ComView\Client\ComViewClient(
-                $baseUrl, 
-                $psrHttpClient,
-                $psrUriFactory, 
-                $psrRequestFactory, 
-                $psrStreamFactory
-            );
+    $baseUrl, 
+    $psrHttpClient,
+    $psrUriFactory, 
+    $psrRequestFactory, 
+    $psrStreamFactory
+);
 ```
 
 # Usage
 
-This library provides 3 methods to send view- and command-requests.
+This library provides 2 methods to send view- and command-requests.
 
 ### Eos\ComView\Client\ComViewClient::requestView($viewRequest)
 
- `Eos\ComView\Client\ComViewClient::requestView($viewRequest)` expects an instance of `Eos\ComView\Client\Value\ViewRequest` and returns an object of `Eos\ComView\Client\Value\ViewResponse`. 
+ `Eos\ComView\Client\ComViewClient::requestView($viewRequest)` expects an instance of `Eos\ComView\Client\Model\ViewRequest` and returns an instance of `Eos\ComView\Client\Model\ViewResponse`. 
  
  ```php
-$viewRequest = new Eos\ComView\Client\Value\ViewRequest(
+$viewRequest = new Eos\ComView\Client\Model\ViewRequest(
     $viewName,      //string
+    $headers,    //array
     $parameters,    //array
     $pagination,    //array
     $orderBy        //string|null
 );
 $response = $client->requestView($viewRequest);
 ```
-
-### Eos\ComView\Client\ComViewClient::executeCommand($commandRequest)
-
- `Eos\ComView\Client\ComViewClient::executeCommand($commandRequest)` expects an instance of `Eos\ComView\Client\Value\CommandRequest` and returns an instance of `Eos\ComView\Client\Value\CommandResponse`.
- 
-  
-  ```php
- $commandRequest = new Eos\ComView\Client\Value\CommandRequest(
-     $commandName,  //string
-     $parameters    //array
- );
- $response = $client->executeCommand($commandRequest);
- ```
  
  ### Eos\ComView\Client\ComViewClient::executeCommands($commandRequests)
  
- `Eos\ComView\Client\ComViewClient::executeCommands($commandRequests)` expects an array of instances of `Eos\ComView\Client\Value\CommandRequest`  with a unique ID (for this request) as key and returns an array of instances of `Eos\ComView\Client\Value\CommandResponse` with the unique ids as keys.
+ `Eos\ComView\Client\ComViewClient::executeCommands($commandRequest)` expects an instances of `Eos\ComView\Client\Model\CommandRequest`  and returns an instance of `Eos\ComView\Client\Model\CommandResponse`.
+ The command instances in request and response are the same objects, which will be updated during the execution.
  
  
-
   ```php
-  $commandRequests = [
-        '1'=> new Eos\ComView\Client\Value\CommandRequest(/*...*/),
-        '2'=> new Eos\ComView\Client\Value\CommandRequest(/*...*/),
-        '3'=> new Eos\ComView\Client\Value\CommandRequest(/*...*/)
-  ];
- $response = $client->executeCommands($commandRequests);
+  $commandRequest = new Eos\ComView\Client\Model\CommandRequest(
+        [
+            new Eos\ComView\Client\Model\Command(/*...*/),
+            new Eos\ComView\Client\Model\Command(/*...*/),
+        ],
+        $headers // array
+  );
+ $response = $client->executeCommands($commandRequest);
  ```
  

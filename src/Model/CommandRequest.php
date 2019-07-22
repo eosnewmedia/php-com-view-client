@@ -20,10 +20,10 @@ class CommandRequest
     private $commands;
 
     /**
-     * @param array $headers
      * @param Command[] $commands
+     * @param array $headers
      */
-    public function __construct(array $headers, array $commands)
+    public function __construct(array $commands, array $headers = [])
     {
         $this->headers = $headers;
         $this->commands = $commands;

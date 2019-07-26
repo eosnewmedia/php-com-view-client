@@ -126,10 +126,10 @@ class ComViewClient
         $responseData = json_decode($response->getBody()->getContents(), true);
 
         $commandResponse = new CommandResponse($response->getHeaders(), $commandRequest->getCommands());
-        foreach ((array)$responseData as $id => $response) {
+        foreach ((array)$responseData as $id => $result) {
             $commandResponse->getCommand($id)->markExecuted(
-                $responseData['status'],
-                array_key_exists('result', $responseData) ? $responseData['result'] : []
+                $result['status'],
+                array_key_exists('result', $result) ? $result['result'] : []
             );
         }
 

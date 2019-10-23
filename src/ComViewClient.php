@@ -86,7 +86,7 @@ class ComViewClient
         }
 
         $requestUri = $this->uriFactory->createUri(rtrim($this->baseUrl, '/') . '/cv/' . $viewRequest->getName());
-        $requestUri->withQuery(http_build_query($query));
+        $requestUri = $requestUri->withQuery(http_build_query($query));
 
         $request = $this->generateRequest('GET', $requestUri, $viewRequest->getHeaders());
         $response = $this->httpClient->sendRequest($request);
